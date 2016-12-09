@@ -2,7 +2,9 @@
 import requests
 import os
 import datetime
+import validators
 from io import open
+import base64
 from html.parser import HTMLParser
 
 class MyHTMLParser(HTMLParser):
@@ -54,9 +56,36 @@ while endpoint:
             parser = MyHTMLParser()
             parser.feed(article['body'])
             image_urls.append(parser.urls)
-            # TODO Download images and replace 'em
+
+            count = 0
+            images_path = os.path.join(path, 'images')
+            if not os.path.exists(images_path):
+                os.makedirs(images_path)
+
+            print('----Article-----')
+            print(article['id'])
+            print('-----URLS-------')
+            print(parser.urls)
+            print('----------------')
+            body = article['body']
+            for url in parser.urls:
+                try:
+                    count += 1
+                    image_name = '{article}-{count}.jpg'.format(article=article['id'], count=count)
+                    body = body.replace(url, os.path.join('images', image_name))
+                    if validators.url(url) is True:
+                        f = open(os.path.join(images_path, image_name), 'wb')
+                        content = requests.get(url).content
+                    else:
+                        f = open(os.path.join(images_path, image_name), 'wb')
+                        content = base64.b64decode(url.split(",")[1])
+                    f.write(content)
+                    f.close()
+                except Exception as e:
+                    log.append('Couldnt get picture url {url} for article {article}'.format(url=url, article=article['id']))
+
             f = open(os.path.join(path, filename), 'w', encoding='utf-8')
-            f.write(name + '\n' + title + '\n' + article['body'])
+            f.write(name + '\n' + title + '\n' + body)
             f.close()
 
     endpoint = data['next_page']
@@ -69,7 +98,7 @@ for url in image_urls:
     f.write(url + '\n')
 f.close()
 
-f = open(os.path.join(backup_path, 'log.txt', 'w', enconding='utf-8')
+f = open(os.path.join(backup_path, 'log.txt', 'w', enconding='utf-8'))
 for log in logs:
     f.write(log + '\n')
 f.close()

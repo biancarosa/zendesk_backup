@@ -99,25 +99,18 @@ while endpoint:
             f.write(body)
             f.close()
             log.append('{id} copied!'.format(id=article['id']))
-            data_csv.append(",".join([fname, article['title'], str(sid)]))
+            data_csv.append(",".join([article['title'], fname]))
+            break
 
-    endpoint = data['next_page']
+    endpoint = False #data['next_page']
 
-urls_file_path = os.path.join(backup_path, 'images')
-if not os.path.exists(urls_file_path):
-    os.makedirs(urls_file_path)
-f = open(os.path.join(urls_file_path, 'urls.txt'), 'w', encoding='utf-8')
-for url in image_urls:
-    f.write(url + '\n')
-f.close()
-
-f = open(os.path.join(backup_path, 'log.txt'), 'w', encoding='utf-8')
+f = open('log.txt', 'w', encoding='utf-8')
 for line in log:
     f.write(unicode(line + "\n"))
 f.close()
 
-f = open(os.path.join(backup_path, 'data.csv'), 'w', encoding='utf-8')
-f.write(unicode("Filename,Title,DataCategoryId\n"))
+f = open('data.csv', 'w', encoding='utf-8')
+f.write(unicode("Title,description__c\n"))
 for line in data_csv:
     f.write(unicode(line + "\n"))
 f.close()

@@ -1,3 +1,6 @@
-backup/
+helpcenter/backup/
+helpcenter/log.txt
+helpcenter/data.csv
+helpcenter/*.zip
 venv/
 .idea

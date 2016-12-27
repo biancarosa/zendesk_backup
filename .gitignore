@@ -1,6 +1,3 @@
-helpcenter/backup/
-helpcenter/log.txt
-helpcenter/data.csv
-helpcenter/*.zip
+helpcenter/
 venv/
 .idea

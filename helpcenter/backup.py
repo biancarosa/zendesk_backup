@@ -30,13 +30,20 @@ language = 'pt-br'
 
 date = datetime.date.today()
 backup_path = 'backup'
-backup_images = False
+backup_images = True
 log = []
 image_urls = []
 data_csv = []
+section_mapping = {
+    200881346 : "N_o_sabe_qual_seu_modelo_Descubra_aqui",
+    201820606 : "Portal_Novo"
+}
 endpoint = zendesk + \
     '/api/v2/help_center/{locale}/articles.json'.format(
         locale=language.lower())
+articles_path = os.path.join(backup_path, 'articles')
+if not os.path.exists(articles_path):
+    os.makedirs(articles_path)
 while endpoint:
     response = session.get(endpoint)
     if response.status_code != 200:
@@ -54,8 +61,6 @@ while endpoint:
         filename = '{article}.html'.format(article=article['id'])
         sid = article['section_id']
 
-        if not os.path.exists(backup_path):
-            os.makedirs(backup_path)
         if article['draft'] is True:
             log.append('{id} is draft!'.format(id=article['id']))
         elif article['body'] is None:
@@ -69,7 +74,7 @@ while endpoint:
                 image_urls.append(parser.urls)
 
                 count = 0
-                images_path = os.path.join(backup_path, 'images')
+                images_path = os.path.join(articles_path, 'images')
                 if len(parser.urls) > 0:
                     if not os.path.exists(images_path):
                         os.makedirs(images_path)
@@ -93,24 +98,24 @@ while endpoint:
                         log.append('Couldnt get picture url {url} for article {article}'.format(
                             url=url, article=article['id']))
 
-            fname = os.path.join(backup_path, filename)
+            fname = os.path.join(articles_path, filename)
             f = open(fname, 'w', encoding='utf-8')
             f.write(title + '\n')
             f.write(body)
             f.close()
             log.append('{id} copied!'.format(id=article['id']))
-            data_csv.append(",".join([article['title'], fname]))
+            data_csv.append(",".join([article['title'], section_mapping[sid], 'articles/'+filename]))
             break
 
     endpoint = False #data['next_page']
 
-f = open('log.txt', 'w', encoding='utf-8')
+f = open(os.path.join(backup_path, 'log.txt'), 'w', encoding='utf-8')
 for line in log:
     f.write(unicode(line + "\n"))
 f.close()
 
-f = open('data.csv', 'w', encoding='utf-8')
-f.write(unicode("Title,description__c\n"))
+f = open(os.path.join(backup_path, 'data.csv'), 'w', encoding='utf-8')
+f.write(unicode("Title,datacategorygroup.PKB,description__c\n"))
 for line in data_csv:
     f.write(unicode(line + "\n"))
 f.close()
